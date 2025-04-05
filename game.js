@@ -5,13 +5,24 @@ const ctx = canvas.getContext('2d');
 // Herní prvky
 const startButton = document.getElementById('startButton');
 const scoreElement = document.getElementById('score');
-const livesElement = document.getElementById('lives');
+const heartsElement = document.getElementById('hearts');
 
 // Herní proměnné
 let score = 0;
 let lives = 3;
 let gameRunning = false;
 let animationId;
+
+// Funkce pro vykreslení srdcí
+function updateHearts() {
+    heartsElement.innerHTML = '';
+    for (let i = 0; i < lives; i++) {
+        heartsElement.innerHTML += '❤️';
+    }
+}
+
+// Inicializace srdcí
+updateHearts();
 
 // Vlk
 const wolf = {
@@ -24,22 +35,29 @@ const wolf = {
     jumpHeight: 15,
     gravity: 0.6,
     velocityY: 0,
+    hitAnimation: false,
     draw: function() {
+        // Červená barva při zásahu
+        if (this.hitAnimation) {
+            ctx.fillStyle = '#e74c3c'; // Červená barva pro tělo při zásahu
+        } else {
+            ctx.fillStyle = '#7f8c8d'; // Normální barva těla
+        }
+        
         // Tělo vlka
-        ctx.fillStyle = '#7f8c8d';
         ctx.beginPath();
         ctx.ellipse(this.x, this.y, this.width / 2, this.height / 3, 0, 0, Math.PI * 2);
         ctx.fill();
         
         // Nohy
-        ctx.fillStyle = '#6c7a7a';
+        ctx.fillStyle = this.hitAnimation ? '#c0392b' : '#6c7a7a';
         // Přední noha 1
         ctx.fillRect(this.x + 20, this.y + 10, 6, 30);
         // Zadní noha 2
         ctx.fillRect(this.x - 25, this.y + 10, 6, 30);
         
         // Hlava
-        ctx.fillStyle = '#95a5a6';
+        ctx.fillStyle = this.hitAnimation ? '#d35400' : '#95a5a6';
         ctx.beginPath();
         ctx.ellipse(this.x + 25, this.y - 10, 25, 20, 0, 0, Math.PI * 2);
         ctx.fill();
@@ -60,15 +78,21 @@ const wolf = {
         ctx.fill();
         
         // Nos
-        ctx.fillStyle = '#34495e';
+        ctx.fillStyle = '#000000';
         ctx.beginPath();
-        ctx.ellipse(this.x + 50, this.y - 10, 8, 5, 0, 0, Math.PI * 2);
+        ctx.arc(this.x + 50, this.y - 10, 6, 0, Math.PI * 2);
         ctx.fill();
         
         // Oči
-        ctx.fillStyle = '#e74c3c';
+        ctx.fillStyle = '#000000';
         ctx.beginPath();
-        ctx.arc(this.x + 35, this.y - 15, 3, 0, Math.PI * 2);
+        ctx.arc(this.x + 35, this.y - 15, 5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Bílá tečka v oku (lesk)
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(this.x + 37, this.y - 17, 2, 0, Math.PI * 2);
         ctx.fill();
         
         // Ocas
@@ -107,7 +131,7 @@ const obstacleInterval = 1500; // Interval mezi překážkami v ms
 let lastObstacleTime = 0;
 
 function createObstacle() {
-    const height = Math.random() * 50 + 30;
+    const height = Math.random() * 40 + 30; // Menší výška překážek
     obstacles.push({
         x: canvas.width,
         y: canvas.height - height,
@@ -317,9 +341,24 @@ function gameLoop(timestamp) {
     for (let i = 0; i < obstacles.length; i++) {
         const obstacle = obstacles[i];
         
-        // Vykreslení překážky
-        ctx.fillStyle = '#8b4513';
-        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        // Vykreslení překážky jako ostny
+        ctx.fillStyle = '#27ae60';
+        
+        // Základna ostnů
+        ctx.fillRect(obstacle.x, obstacle.y + obstacle.height - 10, obstacle.width, 10);
+        
+        // Vykreslení ostrých hrotů (ostnů)
+        ctx.fillStyle = '#f5f5f5';
+        const ostnuCount = 3; // Počet ostnů
+        const ostnuWidth = obstacle.width / ostnuCount;
+        
+        for (let j = 0; j < ostnuCount; j++) {
+            ctx.beginPath();
+            ctx.moveTo(obstacle.x + j * ostnuWidth, obstacle.y + obstacle.height - 10);
+            ctx.lineTo(obstacle.x + j * ostnuWidth + ostnuWidth / 2, obstacle.y + obstacle.height - 90); // Větší ostny
+            ctx.lineTo(obstacle.x + (j + 1) * ostnuWidth, obstacle.y + obstacle.height - 10);
+            ctx.fill();
+        }
         
         // Posun překážky
         obstacle.x -= 5;
@@ -327,7 +366,14 @@ function gameLoop(timestamp) {
         // Kontrola kolize
         if (checkCollision(wolf, obstacle)) {
             lives--;
-            livesElement.textContent = lives;
+            updateHearts();
+            
+            // Vizuální efekt při ztrátě života
+            wolf.hitAnimation = true;
+            setTimeout(function() {
+                wolf.hitAnimation = false;
+            }, 500);
+            
             // Odebrání překážky po kolizi
             obstacles.splice(i, 1);
             i--;
@@ -343,6 +389,12 @@ function gameLoop(timestamp) {
             obstacle.passed = true;
             score++;
             scoreElement.textContent = score;
+            
+            // Kontrola výhry při dosažení 100 bodů
+            if (score >= 100) {
+                winGame();
+                return;
+            }
         }
         
         // Odstranění překážek, které opustily obrazovku
@@ -386,6 +438,12 @@ function gameLoop(timestamp) {
             // Odebrání potravy po sběru
             foods.splice(i, 1);
             i--;
+            
+            // Kontrola výhry při dosažení 100 bodů
+            if (score >= 100) {
+                winGame();
+                return;
+            }
         }
         
         // Odstranění potravy, která opustila obrazovku
@@ -407,7 +465,7 @@ function startGame() {
     score = 0;
     lives = 3;
     scoreElement.textContent = score;
-    livesElement.textContent = lives;
+    updateHearts();
     
     // Reset vlka
     wolf.x = 50;
@@ -419,19 +477,34 @@ function startGame() {
     obstacles.length = 0;
     foods.length = 0;
     
-    // Spuštění hry
-    gameRunning = true;
-    lastObstacleTime = 0;
-    lastFoodTime = 0;
-    
-    if (animationId) {
-        cancelAnimationFrame(animationId);
+    // Kontrola, zda jde o restart nebo první spuštění
+    if (startButton.textContent === "Restart") {
+        // Je to restart, hra se nespustí automaticky
+        gameRunning = false;
+        
+        // Vyčištění canvasu
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Vykreslení scény
+        drawInitialScene();
+        
+        // Změna textu tlačítka zpět na Start
+        startButton.textContent = "Start";
+    } else {
+        // První spuštění, hra se spustí
+        gameRunning = true;
+        lastObstacleTime = 0;
+        lastFoodTime = 0;
+        
+        if (animationId) {
+            cancelAnimationFrame(animationId);
+        }
+        
+        animationId = requestAnimationFrame(gameLoop);
+        
+        // Změna textu tlačítka
+        startButton.textContent = "Restart";
     }
-    
-    animationId = requestAnimationFrame(gameLoop);
-    
-    // Změna textu tlačítka
-    startButton.textContent = "Restart";
 }
 
 // Konec hry
@@ -445,7 +518,7 @@ function gameOver() {
     ctx.fillStyle = '#e74c3c';
     ctx.font = '48px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('Konec hry!', canvas.width / 2, canvas.height / 2 - 24);
+    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 24);
     
     ctx.fillStyle = '#f1c40f';
     ctx.font = '28px Arial';
@@ -617,6 +690,66 @@ function drawInitialScene() {
     ctx.font = '30px Arial';
     ctx.textAlign = 'center';
     ctx.fillText('Stiskněte "Start" pro zahájení hry', canvas.width / 2, canvas.height / 2);
+}
+
+// Funkce pro výhru
+function winGame() {
+    gameRunning = false;
+    
+    // Vykreslení oznámení "Výhra"
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = '#2ecc71';
+    ctx.font = '48px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('VYHRÁL JSI!', canvas.width / 2, canvas.height / 2 - 24);
+    
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = '28px Arial';
+    ctx.fillText(`Konečné skóre: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+    
+    // Přidání ohňostroje
+    drawFireworks();
+}
+
+// Funkce pro kreslení ohňostroje
+function drawFireworks() {
+    for (let i = 0; i < 5; i++) {
+        const x = Math.random() * canvas.width;
+        const y = Math.random() * (canvas.height / 2);
+        const radius = 30 + Math.random() * 20;
+        const color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        
+        // Centrální výbuch
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, radius / 4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Paprsky
+        for (let j = 0; j < 12; j++) {
+            const angle = j * (Math.PI / 6);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(
+                x + Math.cos(angle) * radius,
+                y + Math.sin(angle) * radius
+            );
+            ctx.stroke();
+            
+            // Malé jiskry na konci paprsků
+            ctx.beginPath();
+            ctx.arc(
+                x + Math.cos(angle) * radius,
+                y + Math.sin(angle) * radius, 
+                2, 0, Math.PI * 2
+            );
+            ctx.fill();
+        }
+    }
 }
 
 // Počáteční vykreslení
