@@ -12,6 +12,7 @@ let score = 0;
 let lives = 3;
 let gameRunning = false;
 let animationId;
+let wolfFurColor = '#7f8c8d'; // Výchozí barva srsti
 
 // Funkce pro vykreslení srdcí
 function updateHearts() {
@@ -23,6 +24,55 @@ function updateHearts() {
 
 // Inicializace srdcí
 updateHearts();
+
+// Funkce pro změnu barvy srsti vlka
+function changeWolfFurColor(color) {
+    console.log('Měním barvu srsti na:', color);
+    wolfFurColor = color;
+    
+    // Odstranění předchozího výběru
+    const allButtons = document.querySelectorAll('.color-btn');
+    console.log('Odstraňuji výběr ze všech tlačítek:', allButtons.length);
+    allButtons.forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    
+    // Označení nově vybrané barvy
+    if (event && event.target) {
+        event.target.classList.add('selected');
+        console.log('Označuji nově vybranou barvu');
+    }
+    
+    console.log(`Barva srsti změněna na: ${color}`);
+    console.log('Aktuální wolfFurColor:', wolfFurColor);
+    
+    // Okamžité překreslení vlka s novou barvou
+    if (!gameRunning) {
+        // Pokud hra neběží, překreslíme celou scénu s novou barvou
+        drawInitialScene();
+    }
+}
+
+// Funkce pro zobrazení barevných tlačítek
+function showColorButtons() {
+    const wolfCustomization = document.querySelector('.wolf-customization');
+    if (wolfCustomization) {
+        wolfCustomization.classList.remove('hidden', 'fade-out');
+        console.log('Barevná tlačítka zobrazena');
+    }
+}
+
+// Funkce pro skrytí barevných tlačítek
+function hideColorButtons() {
+    const wolfCustomization = document.querySelector('.wolf-customization');
+    if (wolfCustomization) {
+        wolfCustomization.classList.add('fade-out');
+        setTimeout(() => {
+            wolfCustomization.classList.add('hidden');
+        }, 500);
+        console.log('Barevná tlačítka skryta');
+    }
+}
 
 // Vlk
 const wolf = {
@@ -36,72 +86,192 @@ const wolf = {
     gravity: 0.6,
     velocityY: 0,
     hitAnimation: false,
+    lying: false,     // Nová proměnná pro ležení
+    originalHeight: 50, // Původní výška pro obnovení
     draw: function() {
         // Červená barva při zásahu
         if (this.hitAnimation) {
             ctx.fillStyle = '#e74c3c'; // Červená barva pro tělo při zásahu
+        } else if (this.regenerationEffect) {
+            ctx.fillStyle = '#2ecc71'; // Zelená barva při regeneraci
         } else {
-            ctx.fillStyle = '#7f8c8d'; // Normální barva těla
+            ctx.fillStyle = wolfFurColor; // Vybraná barva srsti
+            // Debugování barvy
+            if (Math.random() < 0.01) { // Pouze občas pro debugování
+                console.log('Vykresluji vlka s barvou:', wolfFurColor);
+            }
         }
+        
+        // Přidáme text pro maso a progress bar
+        if (this.lying && lives < 3) {
+            ctx.fillStyle = '#e74c3c';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(i18n.t('meat'), this.x, this.y - 60);
+            
+            // Progress bar pro regeneraci (vypadá jako maso)
+            if (this.regenerationTimer) {
+                const elapsed = Date.now() - this.regenerationTimer;
+                const progress = Math.min(elapsed / 8, 1); // 8 milisekund = 100%
+                
+                // Pozadí progress baru (tmavé)
+                ctx.fillStyle = 'rgba(139, 69, 19, 0.8)';
+                ctx.fillRect(this.x - 25, this.y - 45, 50, 8);
+                
+                // Progress bar (červené maso)
+                ctx.fillStyle = '#e74c3c';
+                ctx.fillRect(this.x - 25, this.y - 45, 50 * progress, 8);
+                
+                // Rám progress baru (hnědý)
+                ctx.strokeStyle = '#8b4513';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(this.x - 25, this.y - 45, 50, 8);
+                
+                // Přidáme žilky na maso
+                if (progress > 0.3) {
+                    ctx.strokeStyle = '#8b0000';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x - 20, this.y - 42);
+                    ctx.lineTo(this.x - 15, this.y - 40);
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(this.x + 10, this.y - 42);
+                    ctx.lineTo(this.x + 15, this.y - 40);
+                    ctx.stroke();
+                }
+            }
+        }
+        
+        // Pokud vlk leží, upravíme jeho pozici a rozměry
+        const currentHeight = this.lying ? this.height : this.height; // Stejná výška
+        const currentY = this.lying ? this.y + this.height / 4 : this.y;
         
         // Tělo vlka
         ctx.beginPath();
-        ctx.ellipse(this.x, this.y, this.width / 2, this.height / 3, 0, 0, Math.PI * 2);
+        if (this.lying) {
+            // Ležící vlk - protáhlé tělo
+            ctx.ellipse(this.x, currentY, this.width / 2, currentHeight / 3, 0, 0, Math.PI * 2);
+        } else {
+            // Stojící vlk - normální tělo
+            ctx.ellipse(this.x, currentY, this.width / 2, currentHeight / 3, 0, 0, Math.PI * 2);
+        }
         ctx.fill();
         
         // Nohy
         ctx.fillStyle = this.hitAnimation ? '#c0392b' : '#6c7a7a';
-        // Přední noha 1
-        ctx.fillRect(this.x + 20, this.y + 10, 6, 30);
-        // Zadní noha 2
-        ctx.fillRect(this.x - 25, this.y + 10, 6, 30);
+        if (this.lying) {
+            // Ležící vlk - přední nohy dopředu, zadní dozadu
+            // Přední nohy (natažené dopředu k hlavě)
+            ctx.fillRect(this.x + 35, currentY + 10, 15, 6);
+            ctx.fillRect(this.x + 45, currentY + 10, 15, 6);
+            // Zadní nohy (natažené dozadu k ocasu)
+            ctx.fillRect(this.x - 30, currentY + 10, 15, 6);
+            ctx.fillRect(this.x - 40, currentY + 10, 15, 6);
+        } else {
+            // Stojící vlk - normální nohy
+            ctx.fillRect(this.x + 20, currentY + 10, 6, 30);
+            ctx.fillRect(this.x - 25, currentY + 10, 6, 30);
+        }
         
         // Hlava
         ctx.fillStyle = this.hitAnimation ? '#d35400' : '#95a5a6';
-        ctx.beginPath();
-        ctx.ellipse(this.x + 25, this.y - 10, 25, 20, 0, 0, Math.PI * 2);
-        ctx.fill();
+        if (this.lying) {
+            // Ležící vlk - hlava natažená dopředu
+            ctx.beginPath();
+            ctx.ellipse(this.x + 35, currentY - 5, 25, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            // Stojící vlk - normální hlava
+            ctx.beginPath();
+            ctx.ellipse(this.x + 25, currentY - 10, 25, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
         
         // Uši
-        ctx.fillStyle = '#7f8c8d';
-        // Levé ucho
-        ctx.beginPath();
-        ctx.moveTo(this.x + 15, this.y - 25);
-        ctx.lineTo(this.x + 5, this.y - 40);
-        ctx.lineTo(this.x + 25, this.y - 25);
-        ctx.fill();
-        // Pravé ucho
-        ctx.beginPath();
-        ctx.moveTo(this.x + 35, this.y - 25);
-        ctx.lineTo(this.x + 45, this.y - 40);
-        ctx.lineTo(this.x + 50, this.y - 25);
-        ctx.fill();
+        ctx.fillStyle = wolfFurColor;
+        if (this.lying) {
+            // Ležící vlk - uši natažené do stran
+            ctx.beginPath();
+            ctx.moveTo(this.x + 25, currentY - 20);
+            ctx.lineTo(this.x + 15, currentY - 35);
+            ctx.lineTo(this.x + 35, currentY - 20);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(this.x + 45, currentY - 20);
+            ctx.lineTo(this.x + 55, currentY - 35);
+            ctx.lineTo(this.x + 60, currentY - 20);
+            ctx.fill();
+        } else {
+            // Stojící vlk - normální uši
+            ctx.beginPath();
+            ctx.moveTo(this.x + 15, currentY - 25);
+            ctx.lineTo(this.x + 5, currentY - 40);
+            ctx.lineTo(this.x + 25, currentY - 25);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.moveTo(this.x + 35, currentY - 25);
+            ctx.lineTo(this.x + 45, currentY - 40);
+            ctx.lineTo(this.x + 50, currentY - 25);
+            ctx.fill();
+        }
         
         // Nos
         ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.arc(this.x + 50, this.y - 10, 6, 0, Math.PI * 2);
-        ctx.fill();
+        if (this.lying) {
+            ctx.beginPath();
+            ctx.arc(this.x + 60, currentY - 5, 6, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            ctx.beginPath();
+            ctx.arc(this.x + 50, currentY - 10, 6, 0, Math.PI * 2);
+            ctx.fill();
+        }
         
         // Oči
         ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.arc(this.x + 35, this.y - 15, 5, 0, Math.PI * 2);
-        ctx.fill();
+        if (this.lying) {
+            ctx.beginPath();
+            ctx.arc(this.x + 45, currentY - 10, 5, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            ctx.beginPath();
+            ctx.arc(this.x + 35, currentY - 15, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
         
         // Bílá tečka v oku (lesk)
         ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(this.x + 37, this.y - 17, 2, 0, Math.PI * 2);
-        ctx.fill();
+        if (this.lying) {
+            ctx.beginPath();
+            ctx.arc(this.x + 47, currentY - 12, 2, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            ctx.beginPath();
+            ctx.arc(this.x + 37, currentY - 17, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
         
         // Ocas
-        ctx.fillStyle = '#7f8c8d';
-        ctx.beginPath();
-        ctx.moveTo(this.x - 30, this.y);
-        ctx.lineTo(this.x - 45, this.y - 15);
-        ctx.lineTo(this.x - 25, this.y);
-        ctx.fill();
+        ctx.fillStyle = wolfFurColor;
+        if (this.lying) {
+            // Ležící vlk - ocas natažený dozadu
+            ctx.beginPath();
+            ctx.moveTo(this.x - 20, currentY);
+            ctx.lineTo(this.x - 35, currentY - 10);
+            ctx.lineTo(this.x - 15, currentY);
+            ctx.fill();
+        } else {
+            // Stojící vlk - normální ocas
+            ctx.beginPath();
+            ctx.moveTo(this.x - 30, currentY);
+            ctx.lineTo(this.x - 45, currentY - 15);
+            ctx.lineTo(this.x - 25, currentY);
+            ctx.fill();
+        }
     },
     update: function() {
         // Gravitace pro skok
@@ -121,6 +291,60 @@ const wolf = {
         if (!this.jumping) {
             this.jumping = true;
             this.velocityY = -this.jumpHeight;
+        }
+    },
+    lieDown: function() {
+        if (!this.jumping && !this.lying) {
+            this.lying = true;
+            // this.height = this.originalHeight / 2; // Necháme stejnou výšku
+        }
+    },
+    standUp: function() {
+        if (this.lying) {
+            this.lying = false;
+            // this.height = this.originalHeight; // Necháme stejnou výšku
+        }
+    },
+    regenerateHealth: function() {
+        // Regenerace životů když vlk leží a nedotýká se ostnů
+        if (this.lying && lives < 3) {
+            // Kontrola, zda se vlk nedotýká ostnů
+            let touchingObstacle = false;
+            for (let obstacle of obstacles) {
+                if (checkCollision(this, obstacle)) {
+                    touchingObstacle = true;
+                    break;
+                }
+            }
+            
+            // Pokud se nedotýká ostnů, regeneruje životy
+            if (!touchingObstacle) {
+                // Regenerace každých 8 milisekund (8ms) - extrémně rychlá regenerace
+                if (!this.regenerationTimer) {
+                    this.regenerationTimer = Date.now();
+                    console.log('Začínám regeneraci...');
+                } else if (Date.now() - this.regenerationTimer > 8) {
+                    lives = Math.min(lives + 1, 3); // Maximálně 3 životy
+                    updateHearts();
+                    this.regenerationTimer = Date.now();
+                    
+                    // Vizuální efekt regenerace
+                    this.regenerationEffect = true;
+                    setTimeout(() => {
+                        this.regenerationEffect = false;
+                    }, 1000);
+                    
+                    // Přidáme console.log pro debugování
+                    console.log(`Regenerován život! Aktuální životy: ${lives}`);
+                }
+            } else {
+                // Reset timeru když se dotýká překážky
+                this.regenerationTimer = null;
+                console.log('Regenerace přerušena - dotýkám se překážky');
+            }
+        } else {
+            // Reset timeru když vlk neleží
+            this.regenerationTimer = null;
         }
     }
 };
@@ -159,12 +383,17 @@ function createFood() {
 const keys = {
     ArrowLeft: false,
     ArrowRight: false,
+    ArrowDown: false,  // Přidáme šipku dolů
     Space: false
 };
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'ArrowLeft') keys.ArrowLeft = true;
     if (e.key === 'ArrowRight') keys.ArrowRight = true;
+    if (e.key === 'ArrowDown') {
+        e.preventDefault(); // Zabrání posouvání stránky dolů
+        keys.ArrowDown = true;
+    }
     if (e.key === ' ') {
         // Přidání preventDefault, aby mezerník nezpůsobil kliknutí na tlačítko
         e.preventDefault();
@@ -176,6 +405,7 @@ document.addEventListener('keydown', function(e) {
 document.addEventListener('keyup', function(e) {
     if (e.key === 'ArrowLeft') keys.ArrowLeft = false;
     if (e.key === 'ArrowRight') keys.ArrowRight = false;
+    if (e.key === 'ArrowDown') keys.ArrowDown = false;  // Přidáme šipku dolů
     if (e.key === ' ') keys.Space = false;
 });
 
@@ -203,6 +433,17 @@ function gameLoop(timestamp) {
     // Pohyb vlka
     if (keys.ArrowLeft && wolf.x > 0) wolf.x -= wolf.speed;
     if (keys.ArrowRight && wolf.x < canvas.width - wolf.width) wolf.x += wolf.speed;
+    
+    // Ležení vlka
+    if (keys.ArrowDown) {
+        wolf.lieDown();
+    } else {
+        wolf.standUp();
+    }
+    
+    // Regenerace zdraví
+    wolf.regenerateHealth();
+    
     wolf.update();
     
     // Vykreslení země
@@ -461,6 +702,9 @@ function gameLoop(timestamp) {
 
 // Spuštění/restart hry
 function startGame() {
+    // Skrytí barevných tlačítek během hry
+    hideColorButtons();
+    
     // Reset herních proměnných
     score = 0;
     lives = 3;
@@ -472,15 +716,23 @@ function startGame() {
     wolf.y = canvas.height - 100;
     wolf.jumping = false;
     wolf.velocityY = 0;
+    wolf.lying = false; // Reset ležení
+    wolf.height = 50; // Reset výšky
+    wolf.regenerationTimer = null; // Reset regenerace
+    wolf.regenerationEffect = false; // Reset efektu regenerace
+    wolf.hitAnimation = false; // Reset animace zásahu
     
     // Vyčištění překážek a potravy
     obstacles.length = 0;
     foods.length = 0;
     
     // Kontrola, zda jde o restart nebo první spuštění
-    if (startButton.textContent === "Restart") {
+    if (startButton.textContent === i18n.t('restart')) {
         // Je to restart, hra se nespustí automaticky
         gameRunning = false;
+        
+        // Zobrazení barevných tlačítek zpět
+        showColorButtons();
         
         // Vyčištění canvasu
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -489,7 +741,7 @@ function startGame() {
         drawInitialScene();
         
         // Změna textu tlačítka zpět na Start
-        startButton.textContent = "Start";
+        startButton.textContent = i18n.t('start');
     } else {
         // První spuštění, hra se spustí
         gameRunning = true;
@@ -503,13 +755,16 @@ function startGame() {
         animationId = requestAnimationFrame(gameLoop);
         
         // Změna textu tlačítka
-        startButton.textContent = "Restart";
+        startButton.textContent = i18n.t('restart');
     }
 }
 
 // Konec hry
 function gameOver() {
     gameRunning = false;
+    
+    // Zobrazení barevných tlačítek zpět
+    showColorButtons();
     
     // Vykreslení oznámení "Konec hry"
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -518,15 +773,49 @@ function gameOver() {
     ctx.fillStyle = '#e74c3c';
     ctx.font = '48px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 24);
+    ctx.fillText(i18n.t('gameOver'), canvas.width / 2, canvas.height / 2 - 24);
     
     ctx.fillStyle = '#f1c40f';
     ctx.font = '28px Arial';
-    ctx.fillText(`Konečné skóre: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+    ctx.fillText(`${i18n.t('finalScore')}: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
 }
 
 // Poslech události kliknutí na tlačítko start
 startButton.addEventListener('click', startGame);
+
+// Event listenery pro barevná tlačítka
+function initializeColorButtons() {
+    console.log('Inicializuji barevná tlačítka...');
+    const colorButtons = document.querySelectorAll('.color-btn');
+    console.log('Našel jsem tlačítka:', colorButtons.length);
+    
+    if (colorButtons.length === 0) {
+        console.log('Žádná tlačítka nenalezena, zkouším znovu za 100ms...');
+        setTimeout(initializeColorButtons, 100);
+        return;
+    }
+    
+    colorButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const color = this.getAttribute('data-color');
+            console.log('Kliknuto na barvu:', color);
+            changeWolfFurColor(color);
+        });
+    });
+    
+    // Označení výchozí barvy
+    const defaultButton = document.querySelector('[data-color="#7f8c8d"]');
+    if (defaultButton) {
+        defaultButton.classList.add('selected');
+        console.log('Výchozí barva označena');
+    }
+    
+    console.log('Barevná tlačítka inicializována!');
+}
+
+// Spustíme inicializaci hned a také po načtení DOMu
+initializeColorButtons();
+document.addEventListener('DOMContentLoaded', initializeColorButtons);
 
 // Zabránění výchozí akce na mezerník pro celý dokument
 document.addEventListener('keydown', function(e) {
@@ -534,6 +823,15 @@ document.addEventListener('keydown', function(e) {
         e.preventDefault();
     }
 }, { passive: false });
+
+// Přidat funkci pro překreslení scény při změně jazyka
+function redrawSceneForLanguage() {
+    if (!gameRunning) {
+        // Pokud hra neběží, překreslíme úvodní scénu
+        drawInitialScene();
+    }
+    // Pokud hra běží, texty se aktualizují v příštím snímku gameLoop
+}
 
 // Úvodní vykreslení scény
 function drawInitialScene() {
@@ -683,18 +981,21 @@ function drawInitialScene() {
     // Popisek kosti
     ctx.fillStyle = '#ecf0f1';
     ctx.font = '16px Arial';
-    ctx.fillText('Sbírej kosti pro body!', boneX, boneY + 30);
+    ctx.fillText(i18n.t('collectBones'), boneX, boneY + 30);
     
     // Text
     ctx.fillStyle = '#ecf0f1';
     ctx.font = '30px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('Stiskněte "Start" pro zahájení hry', canvas.width / 2, canvas.height / 2);
+    ctx.fillText(i18n.t('pressStart'), canvas.width / 2, canvas.height / 2);
 }
 
 // Funkce pro výhru
 function winGame() {
     gameRunning = false;
+    
+    // Zobrazení barevných tlačítek zpět
+    showColorButtons();
     
     // Vykreslení oznámení "Výhra"
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
@@ -703,11 +1004,11 @@ function winGame() {
     ctx.fillStyle = '#2ecc71';
     ctx.font = '48px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('VYHRÁL JSI!', canvas.width / 2, canvas.height / 2 - 24);
+    ctx.fillText(i18n.t('youWon'), canvas.width / 2, canvas.height / 2 - 24);
     
     ctx.fillStyle = '#f1c40f';
     ctx.font = '28px Arial';
-    ctx.fillText(`Konečné skóre: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
+    ctx.fillText(`${i18n.t('finalScore')}: ${score}`, canvas.width / 2, canvas.height / 2 + 20);
     
     // Přidání ohňostroje
     drawFireworks();

@@ -3,22 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AHOJ VLKU</title>
+    <title>WOLVES</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="game-container">
+        <!-- Language selector -->
+        <div class="language-selector">
+            <select id="languageSelector">
+                <option value="">Vyber jazyk:</option>
+                <option value="cs" selected>Čeština</option>
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+                <option value="es">Español</option>
+                <option value="fr">Français</option>
+            </select>
+        </div>
+        
         <h1>AHOJ VLKU</h1>
         <div class="stats">
             <div class="score">Skóre: <span id="score">0</span></div>
             <div class="lives">Životy: <span id="hearts"></span></div>
         </div>
         <canvas id="gameCanvas" width="800" height="500"></canvas>
+        <div class="wolf-customization">
+            <h3>Vyber barvu srsti vlka:</h3>
+            <div class="color-buttons">
+                <button class="color-btn" data-color="#7f8c8d" style="background-color: #7f8c8d;">Šedá</button>
+                <button class="color-btn" data-color="#8B4513" style="background-color: #8B4513;">Hnědá</button>
+                <button class="color-btn" data-color="#2E8B57" style="background-color: #2E8B57;">Zelená</button>
+                <button class="color-btn" data-color="#FF6B6B" style="background-color: #FF6B6B;">Červená</button>
+                <button class="color-btn" data-color="#4ECDC4" style="background-color: #4ECDC4;">Modrá</button>
+                <button class="color-btn" data-color="#FFE66D" style="background-color: #FFE66D;">Žlutá</button>
+                <button class="color-btn" data-color="#FF69B4" style="background-color: #FF69B4;">Růžová</button>
+                <button class="color-btn" data-color="#9B59B6" style="background-color: #9B59B6;">Fialová</button>
+                <button class="color-btn" data-color="#FFFFFF" style="background-color: #FFFFFF; color: #333; border: 2px solid #ccc;">Bílá</button>
+                <button class="color-btn" data-color="#000000" style="background-color: #000000; color: #fff; border: 2px solid #333;">Černá</button>
+            </div>
+        </div>
         <div class="controls">
             <button id="startButton">Start</button>
             <p class="instructions">Ovládání: Šipkami (← →) pohybujete vlkem, mezerníkem skáčete</p>
         </div>
     </div>
+    
+    <!-- Load i18n first -->
+    <script src="i18n.js"></script>
+    <!-- Then load game logic -->
     <script src="game.js"></script>
+    
+    <script>
+        // Initialize i18n when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            i18n.init();
+        });
+    </script>
 </body>
 </html> 
