@@ -40,10 +40,52 @@
                 <button class="color-btn" data-color="#FFFFFF" style="background-color: #FFFFFF; color: #333; border: 2px solid #ccc;">Bílá</button>
                 <button class="color-btn" data-color="#000000" style="background-color: #000000; color: #fff; border: 2px solid #333;">Černá</button>
             </div>
+            
+            <div class="spots-options">
+                <label class="spots-toggle">
+                    <input type="checkbox" id="spotsToggle">
+                    <span>Přidat fleky vlkovi</span>
+                </label>
+                
+                <div class="spots-color-selection" id="spotsColorSelection" style="display: none;">
+                    <h4>Vyber barvu fleků:</h4>
+                    <div class="spots-color-buttons">
+                        <button class="spots-color-btn" data-color="#8B4513" style="background-color: #8B4513;">Hnědá</button>
+                        <button class="spots-color-btn" data-color="#000000" style="background-color: #000000; color: #fff;">Černá</button>
+                        <button class="spots-color-btn" data-color="#FF6B6B" style="background-color: #FF6B6B;">Červená</button>
+                        <button class="spots-color-btn" data-color="#2E8B57" style="background-color: #2E8B57;">Zelená</button>
+                        <button class="spots-color-btn" data-color="#4ECDC4" style="background-color: #4ECDC4;">Modrá</button>
+                        <button class="spots-color-btn" data-color="#9B59B6" style="background-color: #9B59B6;">Fialová</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="background-options">
+                <h4>Vyber pozadí:</h4>
+                <div class="background-buttons">
+                    <button class="background-btn" data-background="forest" style="background: linear-gradient(135deg, #2E8B57, #27ae60);">Les</button>
+                    <button class="background-btn" data-background="desert" style="background: linear-gradient(135deg, #f39c12, #e67e22);">Poušť</button>
+                    <button class="background-btn" data-background="snow" style="background: linear-gradient(135deg, #ecf0f1, #bdc3c7); color: #333;">Sníh</button>
+                    <button class="background-btn" data-background="night" style="background: linear-gradient(135deg, #2c3e50, #34495e);">Noc</button>
+                    <button class="background-btn" data-background="ocean" style="background: linear-gradient(135deg, #3498db, #2980b9);">MOŘE</button>
+                </div>
+            </div>
         </div>
         <div class="controls">
             <button id="startButton">Start</button>
-            <p class="instructions">Ovládání: Šipkami (← →) pohybujete vlkem, mezerníkem skáčete</p>
+            <p class="instructions">Ovládání: Šipkami (← →) pohybujete vlkem, mezerníkem skáčete,šipkou dolu se regenerujete</p>
+        </div>
+        
+        <!-- Mobilní ovládání -->
+        <div class="mobile-controls" id="mobileControls">
+            <div class="movement-controls">
+                <button class="mobile-btn left-btn" id="leftBtn">←</button>
+                <button class="mobile-btn right-btn" id="rightBtn">→</button>
+            </div>
+            <div class="action-controls">
+                <button class="mobile-btn jump-btn" id="jumpBtn">↑</button>
+                <button class="mobile-btn down-btn" id="downBtn">↓</button>
+            </div>
         </div>
     </div>
     
@@ -52,11 +94,5 @@
     <!-- Then load game logic -->
     <script src="game.js"></script>
     
-    <script>
-        // Initialize i18n when DOM is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            i18n.init();
-        });
-    </script>
 </body>
 </html> 

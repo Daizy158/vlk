@@ -163,4 +163,212 @@ button:hover {
     outline: none;
     border-color: #3498db;
     box-shadow: 0 0 5px rgba(52, 152, 219, 0.5);
+}
+
+/* Styly pro fleky */
+.spots-options {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #95a5a6;
+}
+
+.spots-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #f1c40f;
+}
+
+.spots-toggle input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #f1c40f;
+}
+
+.spots-color-selection {
+    margin-top: 15px;
+}
+
+.spots-color-selection h4 {
+    margin-bottom: 15px;
+    color: #f1c40f;
+    font-size: 1rem;
+}
+
+.spots-color-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.spots-color-btn {
+    padding: 6px 12px;
+    border: 2px solid #34495e;
+    border-radius: 15px;
+    cursor: pointer;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    transition: all 0.3s ease;
+    min-width: 70px;
+    font-size: 0.9rem;
+}
+
+.spots-color-btn:hover {
+    transform: scale(1.1);
+    border-color: #f1c40f;
+    box-shadow: 0 0 8px rgba(241, 196, 15, 0.5);
+}
+
+.spots-color-btn.selected {
+    border-color: #f1c40f;
+    box-shadow: 0 0 12px rgba(241, 196, 15, 0.8);
+    transform: scale(1.05);
+}
+
+/* Styly pro výběr pozadí */
+.background-options {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #95a5a6;
+}
+
+.background-options h4 {
+    margin-bottom: 15px;
+    color: #f1c40f;
+    font-size: 1rem;
+}
+
+.background-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.background-btn {
+    padding: 8px 16px;
+    border: 2px solid #34495e;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+    color: white;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
+    transition: all 0.3s ease;
+    min-width: 80px;
+    font-size: 0.9rem;
+}
+
+.background-btn:hover {
+    transform: scale(1.1);
+    border-color: #f1c40f;
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+}
+
+.background-btn.selected {
+    border-color: #f1c40f;
+    box-shadow: 0 0 15px rgba(241, 196, 15, 0.8);
+    transform: scale(1.05);
+}
+
+/* Mobilní ovládání */
+.mobile-controls {
+    display: none; /* Skryto na desktopu */
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    pointer-events: none; /* Necháme projít kliknutí na canvas */
+}
+
+.mobile-controls.visible {
+    display: block;
+}
+
+.movement-controls {
+    position: absolute;
+    left: 20px;
+    bottom: 20px;
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.action-controls {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.mobile-btn {
+    width: 60px;
+    height: 60px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(52, 152, 219, 0.8);
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+.mobile-btn:active {
+    transform: scale(0.95);
+    background: rgba(41, 128, 185, 0.9);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-btn:hover {
+    background: rgba(52, 152, 219, 0.9);
+}
+
+.left-btn, .right-btn {
+    background: rgba(52, 152, 219, 0.8);
+}
+
+.jump-btn {
+    background: rgba(46, 204, 113, 0.8);
+}
+
+.down-btn {
+    background: rgba(155, 89, 182, 0.8);
+}
+
+/* Skrytí mobilního ovládání na velkých obrazovkách */
+@media (min-width: 768px) {
+    .mobile-controls {
+        display: none !important;
+    }
+}
+
+/* Zobrazení mobilního ovládání na malých obrazovkách */
+@media (max-width: 767px) {
+    .mobile-controls.visible {
+        display: block;
+    }
+    
+    .game-container {
+        padding: 10px;
+    }
+    
+    canvas {
+        max-width: 100%;
+        height: auto;
+    }
 } 

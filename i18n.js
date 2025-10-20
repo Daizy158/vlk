@@ -25,6 +25,14 @@ const i18n = {
             
             // Wolf customization
             selectFurColor: 'Vyber barvu srsti vlka:',
+            addSpots: 'Přidat fleky vlkovi',
+            selectSpotsColor: 'Vyber barvu fleků:',
+            selectBackground: 'Vyber pozadí:',
+            forest: 'Les',
+            desert: 'Poušť',
+            snow: 'SNÍCH',
+            night: 'NOC',
+            ocean: 'MOŘE',
             
             // Color names
             gray: 'Šedá',
@@ -42,6 +50,7 @@ const i18n = {
             start: 'Start',
             restart: 'Restart',
             instructions: 'Ovládání: Šipkami (← →) pohybujete vlkem, mezerníkem skáčete',
+            mobileInstructions: 'Ovládání: Šipkami (← →) pohybujete vlkem, mezerníkem skáčete',
             
             // Game messages
             gameOver: 'KONEC HRY',
@@ -68,6 +77,14 @@ const i18n = {
             
             // Wolf customization
             selectFurColor: 'Select wolf fur color:',
+            addSpots: 'Add spots to wolf',
+            selectSpotsColor: 'Select spots color:',
+            selectBackground: 'Select background:',
+            forest: 'Forest',
+            desert: 'Desert',
+            snow: 'Snow',
+            night: 'Night',
+            ocean: 'Ocean',
             
             // Color names
             gray: 'Gray',
@@ -85,6 +102,7 @@ const i18n = {
             start: 'Start',
             restart: 'Restart',
             instructions: 'Controls: Arrow keys (← →) move the wolf, Spacebar to jump',
+            mobileInstructions: 'Controls: Arrow keys (← →) move the wolf, Spacebar to jump',
             
             // Game messages
             gameOver: 'GAME OVER',
@@ -111,6 +129,14 @@ const i18n = {
             
             // Wolf customization
             selectFurColor: 'Wähle die Fellfarbe des Wolfs:',
+            addSpots: 'Flecken zum Wolf hinzufügen',
+            selectSpotsColor: 'Wähle die Fleckenfarbe:',
+            selectBackground: 'Wähle den Hintergrund:',
+            forest: 'Wald',
+            desert: 'Wüste',
+            snow: 'Schnee',
+            night: 'Nacht',
+            ocean: 'Ozean',
             
             // Color names
             gray: 'Grau',
@@ -128,6 +154,7 @@ const i18n = {
             start: 'Start',
             restart: 'Neustart',
             instructions: 'Steuerung: Pfeiltasten (← →) bewegen den Wolf, Leertaste zum Springen',
+            mobileInstructions: 'Steuerung: Pfeiltasten (← →) bewegen den Wolf, Leertaste zum Springen',
             
             // Game messages
             gameOver: 'SPIEL VORBEI',
@@ -154,6 +181,14 @@ const i18n = {
             
             // Wolf customization
             selectFurColor: 'Selecciona el color del pelaje del lobo:',
+            addSpots: 'Añadir manchas al lobo',
+            selectSpotsColor: 'Selecciona el color de las manchas:',
+            selectBackground: 'Selecciona el fondo:',
+            forest: 'Bosque',
+            desert: 'Desierto',
+            snow: 'Nieve',
+            night: 'Noche',
+            ocean: 'Océano',
             
             // Color names
             gray: 'Gris',
@@ -171,6 +206,7 @@ const i18n = {
             start: 'Iniciar',
             restart: 'Reiniciar',
             instructions: 'Controles: Teclas de flecha (← →) mueven al lobo, Barra espaciadora para saltar',
+            mobileInstructions: 'Controles: Teclas de flecha (← →) mueven al lobo, Barra espaciadora para saltar',
             
             // Game messages
             gameOver: 'FIN DEL JUEGO',
@@ -197,6 +233,14 @@ const i18n = {
             
             // Wolf customization
             selectFurColor: 'Sélectionne la couleur de la fourrure du loup:',
+            addSpots: 'Ajouter des taches au loup',
+            selectSpotsColor: 'Sélectionne la couleur des taches:',
+            selectBackground: 'Sélectionne l\'arrière-plan:',
+            forest: 'Forêt',
+            desert: 'Désert',
+            snow: 'Neige',
+            night: 'Nuit',
+            ocean: 'Océan',
             
             // Color names
             gray: 'Gris',
@@ -214,6 +258,7 @@ const i18n = {
             start: 'Commencer',
             restart: 'Recommencer',
             instructions: 'Contrôles: Flèches (← →) déplacent le loup, Barre d\'espace pour sauter',
+            mobileInstructions: 'Contrôles: Flèches (← →) déplacent le loup, Barre d\'espace pour sauter',
             
             // Game messages
             gameOver: 'FIN DE PARTIE',
@@ -321,6 +366,26 @@ const i18n = {
             }
         });
         
+        // Update spots options
+        const spotsToggleSpan = document.querySelector('.spots-toggle span');
+        if (spotsToggleSpan) spotsToggleSpan.textContent = this.t('addSpots');
+        
+        const spotsColorHeading = document.querySelector('.spots-color-selection h4');
+        if (spotsColorHeading) spotsColorHeading.textContent = this.t('selectSpotsColor');
+        
+        // Update background options
+        const backgroundHeading = document.querySelector('.background-options h4');
+        if (backgroundHeading) backgroundHeading.textContent = this.t('selectBackground');
+        
+        const backgroundButtons = document.querySelectorAll('.background-btn');
+        backgroundButtons.forEach(button => {
+            const background = button.getAttribute('data-background');
+            const backgroundKey = this.getBackgroundKey(background);
+            if (backgroundKey) {
+                button.textContent = this.t(backgroundKey);
+            }
+        });
+        
         // Update controls
         const startButton = document.getElementById('startButton');
         if (startButton) {
@@ -365,6 +430,18 @@ const i18n = {
             '#000000': 'black'
         };
         return colorMap[color];
+    },
+    
+    // Get background key for translation
+    getBackgroundKey: function(background) {
+        const backgroundMap = {
+            'forest': 'forest',
+            'desert': 'desert',
+            'snow': 'snow',
+            'night': 'night',
+            'ocean': 'ocean'
+        };
+        return backgroundMap[background];
     },
     
     // Initialize i18n
